@@ -1,6 +1,6 @@
 {
     "simulation_time": 14,
-    "scheduler_name": "FCFS",
+    "scheduler_name": "RR",
     "tasks_number": 4,
     "tasks": [
         {
