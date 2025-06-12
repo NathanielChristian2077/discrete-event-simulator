@@ -1,4 +1,5 @@
 import json
+from asyncio import current_task
 from typing import List
 
 
@@ -96,6 +97,28 @@ def simulate_sjf(sim_time: int, tasks: List[Task]):
     print_timeline(tasks, sim_time)
     return sequence, executed_tasks
 
+def simulate_rr(sim_time: int, tasks: List[Task]):
+    time = 0
+    sequence = []
+    ready_queue = []
+    tasks_remaining = []
+    executed_tasks = []
+
+    for task in tasks:
+        if(task.computation_time % task.quantum == 0):
+            task.ativs_remaining = task.computation_time / task.quantum
+        else:
+            task.ativs_remaining = task.computation_time % task.quantum
+
+    while time < sim_time:
+
+        pass
+
+    print_timeline(tasks, sim_time)
+    return sequence, executed_tasks
+
+
+
 
 def calculate_metrics(tasks: List[Task]):
     tat_list = [task.finish_time - task.offset for task in tasks]
@@ -132,6 +155,8 @@ if __name__ == "__main__":
         sequence, executed_tasks = simulate_fcfs(sim_time, tasks)
     elif scheduler == "SJF":
         sequence, executed_tasks = simulate_sjf(sim_time, tasks)
+    elif scheduler == "RR":
+        sequence, executed_tasks = simulate_rr(sim_time, tasks)
     else:
         print("Algoritmo não implementado.")
     print("Sequência de Execução:")
@@ -140,3 +165,7 @@ if __name__ == "__main__":
     print("\nMétricas:")
     for k, v in metrics.items():
         print(f"{k}: {v}")
+
+
+# TODO: Tratar quando não há tarefas no processodor e mesmo assim, n se executa
+# TODO: Tratar fila de em relação ao id, já que o print do fcfs está sendo: T0, T1, T3, T2 ao invés de sair em ordem
