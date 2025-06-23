@@ -1,9 +1,8 @@
 {
     "simulation_time": 14,
-    "scheduler_name": "RR",
+    "scheduler_name": "RM",
     "tasks_number": 4,
-    "tasks": [
-        {
+    "tasks": [{
             "offset": 0,
             "computation_time": 5,
             "period_time": 14,
