@@ -1,0 +1,20 @@
+{
+    "simulation_time": 20,
+    "scheduler_name": "EDF",
+    "tasks_number": 2,
+    "tasks": [{
+            "offset": 0,
+            "computation_time": 10,
+            "period_time": 30,
+            "quantum": 5,
+            "deadline": 30
+        },
+        {
+            "offset": 1,
+            "computation_time": 2,
+            "period_time": 10,
+            "quantum": 1,
+            "deadline": 5
+        }
+    ]
+}
