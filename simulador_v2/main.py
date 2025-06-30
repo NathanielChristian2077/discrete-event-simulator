@@ -1,6 +1,7 @@
 import json
 from asyncio import current_task
 from typing import List
+from collections import defaultdict
 
 
 class Task:
@@ -11,7 +12,7 @@ class Task:
         self.period_time = period_time
         self.quantum = quantum
         self.deadline = deadline
-        self.start_time = 0
+        self.start_time = None
         self.finish_time = 0
         self.remaining_time = computation_time
         self.waiting_time = 0
@@ -56,7 +57,7 @@ def simulate_fcfs(sim_time: int, tasks: List[Task]):
 
         if ready_queue:
             current_task = ready_queue.pop(0)
-            if current_task.start_time == 0:
+            if current_task.start_time is None:
                 current_task.start_time = time
             sequence.extend([current_task.id] * current_task.computation_time)
             time += current_task.computation_time
@@ -86,7 +87,7 @@ def simulate_sjf(sim_time: int, tasks: List[Task]):
         if ready_queue:
             current_task = min(ready_queue, key=lambda t: t.computation_time)
             ready_queue.remove(current_task)
-            if current_task.start_time == 0:
+            if current_task.start_time is None:
                 current_task.start_time = time
             sequence.extend([current_task.id] * current_task.computation_time)
             time += current_task.computation_time
@@ -121,7 +122,7 @@ def simulate_rr(sim_time: int, tasks: List[Task]):
         if ready_queue:
             current = ready_queue.popleft()
 
-            if current.start_time == 0 and current.remaining_time == current.computation_time:
+            if current.start_time is None and current.remaining_time == current.computation_time:
                 current.start_time = time
 
             exec_time = min(current.quantum, current.remaining_time)
@@ -163,7 +164,7 @@ def simulate_srtf(sim_time: int, tasks: List[Task]):
     current_task = None
     while time < sim_time:
         for task in tasks_remaining[:]:
-            if task.offset == time:
+            if task.offset <= time:
                 ready_queue.append(task)
                 tasks_remaining.remove(task)
 
@@ -180,7 +181,7 @@ def simulate_srtf(sim_time: int, tasks: List[Task]):
                 current_task = min(ready_queue, key=lambda t: t.remaining_time)
                 ready_queue.remove(current_task)
 
-            if current_task.start_time == 0 and current_task.remaining_time == current_task.computation_time:
+            if current_task.start_time is None and current_task.remaining_time == current_task.computation_time:
                 current_task.start_time = time
 
             current_task.remaining_time -= 1
@@ -194,8 +195,8 @@ def simulate_srtf(sim_time: int, tasks: List[Task]):
     print_timeline_preemptive(tasks, sim_time)
     return sequence, executed_tasks
 
+# TODO: Refazer RM e EDF para não incluir instâncias não finalizadas no cálculo de métricas
 def simulate_rm(sim_time: int, tasks: List[Task]):
-    time = 0
     sequence = []
     executed_tasks = []
     active_tasks = []
@@ -207,7 +208,7 @@ def simulate_rm(sim_time: int, tasks: List[Task]):
         task.instances = []
         missed_deadlines[task.id] = {"misses": 0, "total": 0}
 
-    while time < sim_time:
+    for time in range(sim_time):
         for task in tasks:
             if (time - task.offset) % task.period_time == 0 and time >= task.offset:
                 new_instance = Task(
@@ -223,9 +224,11 @@ def simulate_rm(sim_time: int, tasks: List[Task]):
                 new_instance.original_id = task.id
                 active_tasks.append(new_instance)
                 missed_deadlines[task.id]["total"] += 1
-
-        ready = [t for t in active_tasks if t.offset <= time and t.remaining_time > 0]
-        if ready:
+        if ready := [
+            t
+            for t in active_tasks
+            if t.offset <= time and t.remaining_time > 0
+        ]:
             current = min(ready, key=lambda t: t.period_time)
             current.executions.append((time, time + 1))
             current.remaining_time -= 1
@@ -235,11 +238,11 @@ def simulate_rm(sim_time: int, tasks: List[Task]):
                 current.finish_time = time + 1
                 if current.finish_time > current.deadline:
                     missed_deadlines[current.id]["misses"] += 1
-                executed_tasks.append(current)
+                    executed_tasks.append(current)
+                elif current.deadline > sim_time:
+                    print(f"\nTarefa {current.id} interrompida, tempo de simulação insuficiente para execução completa.")
         else:
             sequence.append("idle")
-
-        time += 1
 
     for t in active_tasks:
         if t.executions and t not in executed_tasks:
@@ -249,7 +252,7 @@ def simulate_rm(sim_time: int, tasks: List[Task]):
 
     print("\nDeadlines Perdidos (RM):")
     for tid, data in missed_deadlines.items():
-        if data["misses"] > 0:
+        if data["misses"] >= 0:
             ratio = data["misses"] / data["total"]
             print(f"T{tid} perdeu {data['misses']} de {data['total']} deadlines ({ratio:.2f})")
 
@@ -257,7 +260,6 @@ def simulate_rm(sim_time: int, tasks: List[Task]):
 
 
 def simulate_edf(sim_time: int, tasks: List[Task]):
-    time = 0
     sequence = []
     executed_tasks = []
     active_tasks = []
@@ -269,7 +271,7 @@ def simulate_edf(sim_time: int, tasks: List[Task]):
         task.instances = []
         missed_deadlines[task.id] = {"misses": 0, "total": 0}
 
-    while time < sim_time:
+    for time in range(sim_time):
         for task in tasks:
             if (time - task.offset) % task.period_time == 0 and time >= task.offset:
                 new_instance = Task(
@@ -286,8 +288,11 @@ def simulate_edf(sim_time: int, tasks: List[Task]):
                 active_tasks.append(new_instance)
                 missed_deadlines[task.id]["total"] += 1
 
-        ready = [t for t in active_tasks if t.offset <= time and t.remaining_time > 0]
-        if ready:
+        if ready := [
+            t
+            for t in active_tasks
+            if t.offset <= time and t.remaining_time > 0
+        ]:
             current = min(ready, key=lambda t: t.deadline)
             current.executions.append((time, time + 1))
             current.remaining_time -= 1
@@ -300,8 +305,6 @@ def simulate_edf(sim_time: int, tasks: List[Task]):
                 executed_tasks.append(current)
         else:
             sequence.append("idle")
-
-        time += 1
 
     for t in active_tasks:
         if t.executions and t not in executed_tasks:
@@ -331,8 +334,6 @@ def calculate_metrics(tasks: List[Task]):
     }
 
 def calculate_metrics_realtime(instances: List[Task]):
-    from collections import defaultdict
-
     grouped = defaultdict(list)
     for task in instances:
         grouped[task.id].append(task)
@@ -415,13 +416,15 @@ def detect_starvation(tasks: List[Task], sim_time: int, starvation_threshold: in
 
 
 def detect_priority_inversion(tasks: List[Task]):
-    # Considerando que quantum pequeno = maior prioridade (simplificação)
     inversions = []
-    for task in tasks:
-        for other in tasks:
-            if task.id != other.id and task.offset > other.offset:
-                if task.quantum < other.quantum and task.start_time > other.start_time:
-                    inversions.append((task.id, other.id, task.start_time))
+    for high in tasks:
+        for low in tasks:
+            if high.id != low.id:
+                if high.quantum < low.quantum and high.offset < low.offset:
+                    if high.start_time is not None and low.start_time is not None:
+                        if high.start_time > low.start_time:
+                            if high.offset <= low.start_time:
+                                inversions.append((low.id, high.id, high.start_time))
     return inversions
 
 if __name__ == "__main__":
@@ -467,5 +470,3 @@ if __name__ == "__main__":
         print("\nInversões de prioridade detectadas:")
         for low, high, t in inversions:
             print(f"T{high} (prioridade) foi atrasada por T{low} no tempo {t}")
-# TODO: Tratar quando não há tarefas no processodor e mesmo assim, n se executa
-# TODO: Tratar fila de em relação ao id, já que o print do fcfs está sendo: T0, T1, T3, T2 ao invés de sair em ordem

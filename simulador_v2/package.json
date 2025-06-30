@@ -14,12 +14,12 @@
             "computation_time": 2,
             "period_time": 10,
             "quantum": 2,
-            "deadline": 5
+            "deadline": 10
         },
         {
             "offset": 3,
             "computation_time": 7,
-            "period_time": 30,
+            "period_time": 40,
             "quantum": 5,
             "deadline": 40
         },
@@ -28,7 +28,7 @@
             "computation_time": 3,
             "period_time": 15,
             "quantum": 3,
-            "deadline": 10
+            "deadline": 15
         }
     ]
 }
