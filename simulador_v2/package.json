@@ -1,6 +1,6 @@
 {
     "simulation_time": 16,
-    "scheduler_name": "FCFS",
+    "scheduler_name": "SRTF",
     "tasks_number": 4,
     "tasks": [{
             "offset": 0,

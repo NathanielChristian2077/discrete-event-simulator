@@ -503,7 +503,7 @@ def report_deadlines_missed(instances: List[Task]):
 
 
 if __name__ == "__main__":
-    sim_time, scheduler, tasks = read_tasks_from_json("simulador_v2\\package.json")
+    sim_time, scheduler, tasks = read_tasks_from_json("simulador_v2\\package2.json")
     from graphs import plot_gantt_chart, plot_gantt_chart_realtime
     if scheduler == "FCFS":
         sequence, executed_tasks = simulate_fcfs(sim_time, tasks)
@@ -516,11 +516,11 @@ if __name__ == "__main__":
     elif scheduler == "RR":
         sequence, executed_tasks = simulate_rr(sim_time, tasks)
         metrics = calculate_metrics(executed_tasks)
-        plot_gantt_chart(executed_tasks, sim_time)
+        plot_gantt_chart(tasks, sim_time)
     elif scheduler == "SRTF":
         sequence, executed_tasks = simulate_srtf(sim_time, tasks)
         metrics = calculate_metrics(executed_tasks)
-        plot_gantt_chart(executed_tasks, sim_time)
+        plot_gantt_chart(tasks, sim_time)
     elif scheduler == "RM":
         sequence, executed_tasks = simulate_rm(sim_time, tasks)
         metrics = calculate_metrics_realtime(executed_tasks)

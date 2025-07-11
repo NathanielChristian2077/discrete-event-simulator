@@ -10,7 +10,6 @@ from typing import List
 def plot_gantt_chart(tasks: List, sim_time: int, title="Gantt Chart"):
     fig, ax = plt.subplots(figsize=(10, len(tasks) * 0.8))
 
-    # Definindo cores únicas por tarefa
     color_map = {}
     colors = plt.cm.get_cmap("tab10", len(tasks))
 
@@ -19,7 +18,7 @@ def plot_gantt_chart(tasks: List, sim_time: int, title="Gantt Chart"):
         if tid not in color_map:
             color_map[tid] = colors(idx)
 
-        # Para métodos não-preemptivos (FCFS, SJF), construímos 'executions'
+        # Para métodos não-preemptivos (FCFS, SJF)
         if not hasattr(task, 'executions') or not task.executions:
             task.executions = [(task.start_time, task.finish_time)]
 
