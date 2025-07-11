@@ -331,7 +331,7 @@ def calculate_metrics(tasks: List[Task]):
         "WT_per_task": wt_list,
         "Most_Waiting_Task": max(completed_tasks, key=lambda t: t.waiting_time).id,
         "Least_Waiting_Task": min(completed_tasks, key=lambda t: t.waiting_time).id,
-        "CPU_utilization": sum(t.computation_time for t in completed_tasks) / max(t.finish_time for t in completed_tasks)
+        "CPU_utilization": sum(t.computation_time for t in completed_tasks) / sim_time
     }
 
 def calculate_metrics_realtime(instances: List[Task]):
@@ -389,7 +389,7 @@ def calculate_metrics_realtime(instances: List[Task]):
 
 
 def print_timeline_simple(tasks: List[Task], sim_time):
-    print("\nTimeline:")
+    print(f"\nTimeline ({scheduler}):")
     for task in tasks:
         line = ['_'] * sim_time
         start = task.finish_time - task.computation_time
@@ -399,7 +399,7 @@ def print_timeline_simple(tasks: List[Task], sim_time):
         print(f"T{task.id}: {''.join(line)}")
 
 def print_timeline_preemptive(tasks: List[Task], sim_time):
-    print("\nTimeline:")
+    print(f"\nTimeline ({scheduler}):")
     for task in tasks:
         line = ['_'] * sim_time
         for start, end in getattr(task, 'executions', []):
@@ -411,7 +411,7 @@ def print_timeline_preemptive(tasks: List[Task], sim_time):
 def print_timeline_realtime(tasks: List[Task], sim_time):
     from collections import defaultdict
 
-    print("\nTimeline:")
+    print(f"\nTimeline ({scheduler}):")
     lines = defaultdict(lambda: ['_'] * sim_time)
 
     for task in tasks:

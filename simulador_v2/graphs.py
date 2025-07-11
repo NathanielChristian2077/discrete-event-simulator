@@ -44,7 +44,6 @@ def plot_gantt_chart(tasks: List, sim_time: int, title="Gantt Chart"):
 def plot_gantt_chart_realtime(instances: List[Task], sim_time: int, title="Gantt Chart (Tempo Real)"):
     fig, ax = plt.subplots(figsize=(12, len(instances) * 0.5))
 
-    color_map = {}
     colors = plt.cm.get_cmap("tab10", 10)  # até 10 tarefas
 
     # Nomear instâncias: T0_0, T0_1...
@@ -67,15 +66,15 @@ def plot_gantt_chart_realtime(instances: List[Task], sim_time: int, title="Gantt
         base_color = colors(inst.id % 10)
         legend_labels[f"T{inst.id}"] = base_color
 
-        # Determinar cor (vermelho se perdeu deadline)
-        color = 'red' if inst.finish_time and inst.finish_time > inst.deadline else base_color
+        # Determinar cor (cinza se perdeu deadline)
+        color = 'gray' if inst.finish_time and inst.finish_time > inst.deadline else base_color
 
         for start, end in inst.executions:
             ax.barh(y=label, width=end - start, left=start, height=0.6,
                     color=color, edgecolor='black')
 
         # Linha de deadline
-        ax.axvline(inst.deadline, color='gray', linestyle='--', linewidth=1)
+        ax.axvline(inst.deadline, color=base_color, linestyle='--', linewidth=1)
 
         yticks.append(label)
         yticklabels.append(label)
@@ -90,8 +89,8 @@ def plot_gantt_chart_realtime(instances: List[Task], sim_time: int, title="Gantt
 
     # Legenda
     patches = [mpatches.Patch(color=color, label=task)
-            for task, color in legend_labels.items()]
-    patches.append(mpatches.Patch(color='red', label='Deadline perdido'))
+            for task, color in sorted(legend_labels.items())]
+    patches.append(mpatches.Patch(color='grey', label='Deadline perdido'))
     ax.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc='upper left')
 
     plt.tight_layout()
